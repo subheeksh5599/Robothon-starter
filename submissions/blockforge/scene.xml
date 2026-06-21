@@ -56,8 +56,13 @@
     </body>
 
     <!-- Free-floating cubes -->
-    <!-- cube_red placed at back edge — will fall into Pit of Death, Necromancer resurrects it -->
-    <body name="cube_red" pos="0.2 0.32 0.58">
+    <!-- PIT LEDGE — reachable death zone at z=0.25 where cubes fall. Necromancer can resurrect from here. -->
+    <body name="pit_ledge" pos="0.2 0.45 0.22">
+      <geom name="pit_platform" type="box" size="0.3 0.15 0.03" material="table_leg"/>
+    </body>
+
+    <!-- cube_red placed at back edge — falls onto Pit Ledge, Necromancer resurrects it from reachable height -->
+    <body name="cube_red" pos="0.2 0.35 0.50">
       <freejoint/>
       <geom name="cube_red_geom" type="box" size="0.025 0.025 0.025" material="cube_red" mass="0.1"/>
     </body>

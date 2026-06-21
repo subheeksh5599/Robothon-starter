@@ -32,7 +32,7 @@ GRIPPER = "finger_joint1"
 CUBES = ["cube_red","cube_blue","cube_green","cube_yellow"]
 TARGETS = ["target_red","target_blue","target_green","target_yellow"]
 ARM_HOME = np.array([-0.2, -0.55, 0.0, -2.1, 0.0, 2.0, 0.7])
-DEATH_HEIGHT = 0.15  # z below this = fallen off table (Pit of Death)
+DEATH_HEIGHT = 0.30  # cubes below this = fallen onto Pit Ledge (reachable at z=0.25-0.28)
 TABLE_HEIGHT = 0.52
 
 class CWDLS_IK:
