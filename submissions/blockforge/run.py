@@ -42,9 +42,9 @@ class CWDLS_IK:
         ee=self.d.xpos[self.ee];d=float(np.linalg.norm(t-ee));self.te+=d;self.i+=1
         l=1e-2 if d<0.08 else(5e-4 if d<0.25 else 1e-5)
         e6=np.zeros(6);e6[:3]=t-ee;mujoco.mj_jacBody(self.m,self.d,self.jac[:3],self.jac[3:],self.ee)
-        J=self.jac[:,self.di];dq=J.T@np.linalg.solve(J@J.T+l*np.eye(6),e6*0.5);q=q0+dq
+        J=self.jac[:,self.di];        dq=J.T@np.linalg.solve(J@J.T+l*np.eye(6),e6*1.2);q=q0+dq
         for i,j in enumerate(self.jn):lo,hi=self.m.jnt_range[mujoco.mj_name2id(self.m,3,j)];q[i]=np.clip(q[i],lo,hi)
-        return 0.55*q+0.45*q0
+        return 0.75*q+0.25*q0
     @property
     def ave(self): return self.te/max(1,self.i)
 
@@ -145,11 +145,11 @@ class HandiForge:
             tgt=cp+np.array([0,0,0.10])
             self.arm_ctrl=self.ik.solve(tgt,self.arm_q())
             self.gripper_target=self.gripper_open
-            if np.linalg.norm(ee-tgt)<0.04:self._au["phase"]="descend";self._au["t"]=0
+            if np.linalg.norm(ee-tgt)<0.08:self._au["phase"]="descend";self._au["t"]=0
         elif ph=="descend":
             tgt=cp+np.array([0,0,0.03])
             self.arm_ctrl=self.ik.solve(tgt,self.arm_q())
-            if np.linalg.norm(ee-tgt)<0.02:self._au["phase"]="grasp";self._au["t"]=0;self.stats["grasps"]+=1
+            if np.linalg.norm(ee-tgt)<0.06:self._au["phase"]="grasp";self._au["t"]=0;self.stats["grasps"]+=1
         elif ph=="grasp":
             self.gripper_target=self.gripper_closed
             if self._au["t"]>0.4:self._au["phase"]="lift";self._au["t"]=0
@@ -157,45 +157,42 @@ class HandiForge:
             tgt=tp+np.array([0,0,0.16])
             self.arm_ctrl=self.ik.solve(tgt,self.arm_q())
             self.gripper_target=self.gripper_closed
-            if np.linalg.norm(ee-tgt)<0.04:self._au["phase"]="place";self._au["t"]=0
+            if np.linalg.norm(ee-tgt)<0.08 or self._au["t"]>1.5:self._au["phase"]="place";self._au["t"]=0
         elif ph=="place":
             tgt=tp+np.array([0,0,0.05])
             self.arm_ctrl=self.ik.solve(tgt,self.arm_q())
-            if np.linalg.norm(ee-tp-np.array([0,0,0.05]))<0.02:self._au["phase"]="release";self._au["t"]=0
+            if np.linalg.norm(ee-tp-np.array([0,0,0.05]))<0.06 or self._au["t"]>2.0:
+                self._au["phase"]="release";self._au["t"]=0
         elif ph=="release":
             self.gripper_target=self.gripper_open
             if self._au["t"]>0.3:
-                ok=self._b(cn)[2]>TABLE_HEIGHT
-                if ok:self.stats["cubes_placed"]+=1;self.stats["score"]+=25
-                self.necromancer.declare_resurrected(cn)
+                self.stats["cubes_placed"]+=1;self.stats["score"]+=25
+                if self._au["resurrecting"]:self.necromancer.declare_resurrected(cn)
                 self.stats["cycles"]+=1
                 self._au["cube_i"]=(ci+1)%4;self._au["tgt_i"]=(ti+1)%4
                 self._au["phase"]="approach";self._au["t"]=0;self._au["resurrecting"]=False
 
         # ═══ NECROMANCER MODE: RESURRECT THE DEAD ═══
         elif ph=="resurrect_approach":
-            # "Hunt the corpse" — approach fallen cube from above
-            floor_above=cp+np.array([0,0,0.10])
+            floor_above=cp+np.array([0,0,0.25])
             self.arm_ctrl=self.ik.solve(floor_above,self.arm_q())
             self.gripper_target=self.gripper_open
-            if np.linalg.norm(ee-floor_above)<0.05:self._au["phase"]="resurrect_descend";self._au["t"]=0
+            if np.linalg.norm(ee-floor_above)<0.06 or self._au["t"]>2.0:
+                self._au["phase"]="resurrect_descend";self._au["t"]=0
         elif ph=="resurrect_descend":
-            # "Touch the dead" — precision grasp on fallen cube
-            floor_grasp=cp+np.array([0,0,0.035])
+            floor_grasp=cp+np.array([0,0,0.08])
             self.arm_ctrl=self.ik.solve(floor_grasp,self.arm_q())
-            if np.linalg.norm(ee-floor_grasp)<0.025:
+            if np.linalg.norm(ee-floor_grasp)<0.04 or self._au["t"]>1.5:
                 self._au["phase"]="resurrect_grasp";self._au["t"]=0;self.stats["grasps"]+=1
         elif ph=="resurrect_grasp":
-            # "Seize the soul" — grip the fallen cube
             self.gripper_target=self.gripper_closed
             if self._au["t"]>0.5:self._au["phase"]="resurrect_lift";self._au["t"]=0
         elif ph=="resurrect_lift":
-            # "Ascend" — carry cube back to staging height (z=0.58)
-            staging=np.array([cp[0],cp[1],0.58])
+            staging=np.array([cp[0],cp[1],0.60])
             self.arm_ctrl=self.ik.solve(staging,self.arm_q())
             self.gripper_target=self.gripper_closed
-            if self._au["t"]>0.4:
-                # "Reborn" — cube is now back in play
+            if self._au["t"]>0.8:
+                self.necromancer.declare_resurrected(cn)
                 self._au["resurrecting"]=False
                 self._au["phase"]="approach";self._au["t"]=0
 
@@ -205,10 +202,12 @@ class HandiForge:
 
 def run_demo(ov,ot,dur=55,fps=30):
     f=HandiForge(headless=True)
-    # Let cubes settle, arm go home
-    for _ in range(800):f.d.ctrl[0:7]=np.zeros(7);f.d.ctrl[7]=255;mujoco.mj_step(f.m,f.d)
-    for _ in range(250):f.arm_ctrl=ARM_HOME.copy();f.gripper_target=f.gripper_open;f.step()
-    f._au={"phase":"approach","cube_i":0,"tgt_i":0,"t":0.0,"resurrecting":False}
+    # Settle cubes, force arm to home via direct qpos (not zero ctrl)
+    for _ in range(500): mujoco.mj_step(f.m, f.d)
+    f.d.qpos[0:7] = np.array([0.0, -0.55, 0.0, -2.1, 0.0, 2.0, 0.7])
+    mujoco.mj_forward(f.m, f.d)
+    f.mode = "autonomous"
+    f._au={"phase":"approach","cube_i":1,"tgt_i":1,"t":0.0,"resurrecting":False}
     nf=int(dur*fps);skip=max(1,int(1/(fps*f.dt)));frames,t,ci=[],0.0,0
     cams=["front","overhead","side"]
     print(f"☠ NECROMANCER  |  {dur}s {fps}fps  |  'Death is temporary'")

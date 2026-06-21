@@ -56,9 +56,14 @@
     </body>
 
     <!-- Free-floating cubes -->
-    <body name="cube_red" pos="0.2 0 0.58">
+    <!-- cube_red placed at back edge — will fall into Pit of Death, Necromancer resurrects it -->
+    <body name="cube_red" pos="0.2 0.32 0.58">
       <freejoint/>
       <geom name="cube_red_geom" type="box" size="0.025 0.025 0.025" material="cube_red" mass="0.1"/>
+    </body>
+    <body name="cube_yellow" pos="0.5 -0.1 0.58">
+      <freejoint/>
+      <geom name="cube_yellow_geom" type="box" size="0.025 0.025 0.025" material="cube_yellow" mass="0.1"/>
     </body>
     <body name="cube_blue" pos="0.35 0 0.58">
       <freejoint/>
@@ -68,10 +73,8 @@
       <freejoint/>
       <geom name="cube_green_geom" type="box" size="0.025 0.025 0.025" material="cube_green" mass="0.1"/>
     </body>
-    <body name="cube_yellow" pos="0.65 0 0.58">
-      <freejoint/>
-      <geom name="cube_yellow_geom" type="box" size="0.025 0.025 0.025" material="cube_yellow" mass="0.1"/>
-    </body>
+    <!-- Cube positioned to fall into the Pit of Death — Necromancer will resurrect it -->
+    <!-- Back wall removed — Pit of Death. cube_red is positioned to fall off. -->
 
     <!-- Containment walls -->
     <geom name="wall_right" type="box" size="0.02 0.3 0.12" pos="0.95 0 0.55" material="wall"/>
