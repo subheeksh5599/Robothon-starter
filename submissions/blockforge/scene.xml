@@ -75,7 +75,7 @@
 
     <!-- Containment walls -->
     <geom name="wall_right" type="box" size="0.02 0.3 0.12" pos="0.95 0 0.55" material="wall"/>
-    <geom name="wall_back" type="box" size="0.47 0.02 0.12" pos="0.5 0.3 0.55" material="wall"/>
+    <!-- BACK WALL REMOVED — this is the Pit of Death where cubes fall. Necromancer hunts them down. -->
 
     <camera name="overhead" pos="0.45 -0.1 1.0" xyaxes="1 0 0 0 1 0" mode="fixed"/>
     <camera name="front" pos="0.45 -0.8 0.7" xyaxes="1 0 0 0 0.4 0.916" mode="fixed"/>
