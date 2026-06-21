@@ -109,11 +109,11 @@ scene = """<mujoco model="blockforge_pro">
     <material name="table_leg" rgba="0.4 0.3 0.2 1"/>
     <material name="wall_grey" rgba="0.5 0.5 0.5 1"/>
 
-    <material name="peg_red" rgba="0.95 0.2 0.2 1"/>
-    <material name="peg_green" rgba="0.2 0.85 0.3 1"/>
-    <material name="peg_blue" rgba="0.2 0.4 0.95 1"/>
-    <material name="peg_yellow" rgba="0.95 0.85 0.15 1"/>
-    <material name="peg_purple" rgba="0.7 0.2 0.9 1"/>
+    <material name="ring_small" rgba="0.95 0.3 0.3 1"/>
+    <material name="ring_medium" rgba="0.2 0.8 0.3 1"/>
+    <material name="ring_large" rgba="0.2 0.4 0.95 1"/>
+    <material name="peg_metal" rgba="0.6 0.6 0.65 1"/>
+    <material name="pegboard" rgba="0.45 0.4 0.35 1"/>
 
     <!-- Panda meshes -->
 __PANDA_MESHES__
@@ -129,66 +129,40 @@ __LEAP_MESHES__
       diffuse="0.4 0.4 0.5" specular="0 0 0"/>
     <geom name="floor" size="0 0 0.025" type="plane" material="groundplane"/>
 
-    <!-- === FIXED BASE for Franka arm === -->
+    <!-- === FIXED BASE for Franka arm with LEAP HAND inside attachment === -->
 
-    <body name="panda_base" pos="0 0 0">
+    <body name="panda_base" pos="0.2 0 0">
       __PANDA_BODY_CHAIN__
     </body>
 
-    <!-- === LEAP HAND (attached via weld to panda attachment body) === -->
-
-    <!-- Weld target site on the Franka attachment body -->
-    <!-- We add a helper body that the equality weld will anchor to -->
-    <body name="leap_anchor" pos="0 0 0" mocap="true">
-      <geom type="sphere" size="0.001" rgba="0 0 0 0" contype="0" conaffinity="0"/>
-    </body>
-
-    __LEAP_BODY_CHAIN__
+    <!-- (LEAP hand body tree is injected inside the Panda attachment body via replace below) -->
 
     <!-- Table + task objects -->
-    <body name="table" pos="0.45 -0.15 0.0">
-      <geom name="table_top" type="box" size="0.4 0.35 0.02" pos="0 0 0.78" material="table_surface"/>
-      <geom name="leg_fl" type="cylinder" size="0.025 0.38" pos="-0.3 -0.25 0.4" material="table_leg"/>
-      <geom name="leg_fr" type="cylinder" size="0.025 0.38" pos="0.3 -0.25 0.4" material="table_leg"/>
-      <geom name="leg_bl" type="cylinder" size="0.025 0.38" pos="-0.3 0.25 0.4" material="table_leg"/>
-      <geom name="leg_br" type="cylinder" size="0.025 0.38" pos="0.3 0.25 0.4" material="table_leg"/>
+    <body name="table" pos="0.35 -0.15 0.0">
+      <geom name="table_top" type="box" size="0.4 0.35 0.02" pos="0 0 0.72" material="table_surface"/>
+      <geom name="leg_fl" type="cylinder" size="0.025 0.35" pos="-0.3 -0.25 0.37" material="table_leg"/>
+      <geom name="leg_fr" type="cylinder" size="0.025 0.35" pos="0.3 -0.25 0.37" material="table_leg"/>
+      <geom name="leg_bl" type="cylinder" size="0.025 0.35" pos="-0.3 0.25 0.37" material="table_leg"/>
+      <geom name="leg_br" type="cylinder" size="0.025 0.35" pos="0.3 0.25 0.37" material="table_leg"/>
     </body>
 
-    <!-- Hole board (precision targets) -->
-    <body name="hole_board" pos="0.45 -0.15 0.80">
-      <geom name="board_base" type="box" size="0.18 0.18 0.015" material="table_leg"/>
-      <site name="hole_a" type="cylinder" size="0.012 0.001" pos="-0.07 -0.07 0.015" rgba="0.95 0.1 0.1 0.5"/>
-      <site name="hole_b" type="cylinder" size="0.012 0.001" pos="0.07 -0.07 0.015" rgba="0.1 0.9 0.1 0.5"/>
-      <site name="hole_c" type="cylinder" size="0.012 0.001" pos="-0.07 0.07 0.015" rgba="0.1 0.4 0.95 0.5"/>
-      <site name="hole_d" type="cylinder" size="0.012 0.001" pos="0.07 0.07 0.015" rgba="0.9 0.85 0.1 0.5"/>
-    </body>
+    <!-- 3 demonstration pegs at different positions (within Franka reach ~0.85m) -->
+    <geom name="post_a" type="cylinder" size="0.02 0.10" pos="0.38 0.02 0.65" material="ring_small"/>
+    <geom name="post_b" type="cylinder" size="0.02 0.10" pos="0.32 0.02 0.65" material="ring_medium"/>
+    <geom name="post_c" type="cylinder" size="0.02 0.10" pos="0.26 0.02 0.65" material="ring_large"/>
 
-    <!-- Small cylinders for insertion task -->
-    <body name="cylinder_red" pos="0.4 -0.1 0.90">
-      <freejoint/>
-      <geom name="cyl_red" type="cylinder" size="0.01 0.035" material="peg_red" mass="0.015"/>
-    </body>
-    <body name="cylinder_green" pos="0.5 -0.1 0.90">
-      <freejoint/>
-      <geom name="cyl_green" type="cylinder" size="0.01 0.035" material="peg_green" mass="0.015"/>
-    </body>
-    <body name="cylinder_blue" pos="0.5 -0.05 0.90">
-      <freejoint/>
-      <geom name="cyl_blue" type="cylinder" size="0.01 0.035" material="peg_blue" mass="0.015"/>
-    </body>
-    <body name="cylinder_purple" pos="0.4 -0.05 0.90">
-      <freejoint/>
-      <geom name="cyl_purple" type="cylinder" size="0.01 0.035" material="peg_purple" mass="0.015"/>
-    </body>
+    <site name="peg_small_top" type="sphere" size="0.008" pos="0.38 0.02 0.70" rgba="0.95 0.3 0.3 0.6"/>
+    <site name="peg_medium_top" type="sphere" size="0.008" pos="0.32 0.02 0.70" rgba="0.2 0.8 0.3 0.6"/>
+    <site name="peg_large_top" type="sphere" size="0.008" pos="0.26 0.02 0.70" rgba="0.2 0.4 0.95 0.6"/>
 
     <!-- Containment walls -->
-    <geom name="wall_left" type="box" size="0.02 0.35 0.12" pos="0.05 -0.15 0.88" material="wall_grey"/>
-    <geom name="wall_right" type="box" size="0.02 0.35 0.12" pos="0.85 -0.15 0.88" material="wall_grey"/>
-    <geom name="wall_back" type="box" size="0.42 0.02 0.12" pos="0.45 0.2 0.88" material="wall_grey"/>
+    <geom name="wall_left" type="box" size="0.02 0.35 0.12" pos="-0.05 -0.15 0.80" material="wall_grey"/>
+    <geom name="wall_right" type="box" size="0.02 0.35 0.12" pos="0.75 -0.15 0.80" material="wall_grey"/>
+    <geom name="wall_back" type="box" size="0.42 0.02 0.12" pos="0.35 0.2 0.80" material="wall_grey"/>
 
-    <camera name="overhead" pos="0.45 -0.15 1.5" xyaxes="1 0 0 0 1 0" mode="fixed"/>
-    <camera name="front" pos="0.45 -0.9 1.15" xyaxes="1 0 0 0 0.4 0.916" mode="fixed"/>
-    <camera name="closeup" pos="0.45 -0.35 1.05" xyaxes="1 0 0 0 0.6 0.8" mode="fixed"/>
+    <camera name="overhead" pos="0.35 -0.15 1.4" xyaxes="1 0 0 0 1 0" mode="fixed"/>
+    <camera name="front" pos="0.35 -0.85 1.1" xyaxes="1 0 0 0 0.4 0.916" mode="fixed"/>
+    <camera name="closeup" pos="0.35 -0.35 1.0" xyaxes="1 0 0 0 0.6 0.8" mode="fixed"/>
   </worldbody>
 
 __PANDA_ACTUATORS__
@@ -197,11 +171,10 @@ __LEAP_ACTUATORS__
   <sensor>
     <!-- LEAP finger sensors -->
     __LEAP_SENSORS__
-    <!-- Cylinder tracking -->
-    <framepos name="cyl_red_pos" objtype="body" objname="cylinder_red"/>
-    <framepos name="cyl_green_pos" objtype="body" objname="cylinder_green"/>
-    <framepos name="cyl_blue_pos" objtype="body" objname="cylinder_blue"/>
-    <framepos name="cyl_purple_pos" objtype="body" objname="cylinder_purple"/>
+    <!-- Peg target sensors -->
+    <framepos name="peg_small_sensor" objtype="site" objname="peg_small_top"/>
+    <framepos name="peg_medium_sensor" objtype="site" objname="peg_medium_top"/>
+    <framepos name="peg_large_sensor" objtype="site" objname="peg_large_top"/>
     <!-- Fingertip touch -->
     <touch name="if_tip_touch" site="if_tip_site"/>
     <touch name="mf_tip_touch" site="mf_tip_site"/>
@@ -213,22 +186,11 @@ __LEAP_ACTUATORS__
     <force name="th_tip_force" site="th_tip_site"/>
   </sensor>
 
-  <equality>
-    <!-- Weld LEAP hand palm to Franka attachment body -->
-    <weld name="hand_to_arm" body1="attachment" body2="palm"
-      solimp="0.95 0.99 0.001" solref="0.002 1"/>
-  </equality>
-
   <contact>
     __PANDA_CONTACTS__
     __LEAP_CONTACTS__
   </contact>
 
-  <keyframe>
-    <key name="home" qpos="0 0 0 -1.57079 0 1.57079 -0.7853 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-      0 0 0 0 0 0 0 0"
-      ctrl="0 0 0 -1.57079 0 1.57079 -0.7853 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"/>
-  </keyframe>
 </mujoco>"""
 
 # Extract what we need from source XMLs
@@ -274,8 +236,14 @@ leap_wb_inner = leap_wb_inner.replace(
 # Substitute
 scene = scene.replace("__PANDA_MESHES__", panda_asset_inner)
 scene = scene.replace("__LEAP_MESHES__", leap_asset_inner)
+
+# Inject LEAP hand body tree directly into Panda attachment body
+panda_wb_inner = panda_wb_inner.replace(
+    '<site name="attachment_site"/>',
+    leap_wb_inner
+)
 scene = scene.replace("__PANDA_BODY_CHAIN__", panda_wb_inner)
-scene = scene.replace("__LEAP_BODY_CHAIN__", leap_wb_inner)
+
 scene = scene.replace("__PANDA_ACTUATORS__", f"<actuator>\n{panda_act_inner}\n  </actuator>")
 scene = scene.replace("__LEAP_ACTUATORS__", f"<actuator>\n{leap_act_inner}\n  </actuator>")
 scene = scene.replace("__LEAP_SENSORS__", leap_sensor_inner)
@@ -287,6 +255,6 @@ out.write_text(scene, encoding="utf-8")
 print(f"Written {out} ({len(scene)} chars)")
 print("Substitutions verified:", all(marker not in scene for marker in [
     "__PANDA_MESHES__", "__LEAP_MESHES__", "__PANDA_BODY_CHAIN__",
-    "__LEAP_BODY_CHAIN__", "__PANDA_ACTUATORS__", "__LEAP_ACTUATORS__",
+    "__PANDA_ACTUATORS__", "__LEAP_ACTUATORS__",
     "__LEAP_SENSORS__", "__PANDA_CONTACTS__", "__LEAP_CONTACTS__"
 ]))
